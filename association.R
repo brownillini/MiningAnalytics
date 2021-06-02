@@ -6,7 +6,7 @@ install.packages("lubridate")
 library(arules) #mine rules with one item on the right hand side (rhs).
 library(tidyverse) #needed for data conversion to 'transactions'
 library(lubridate)
-library(qdapTools)
+library(qdapTools)#
 
 
 setwd("C:/Users/hongcui/Documents/research/2021ALPHA with Brown/R")
