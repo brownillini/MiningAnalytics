@@ -4,7 +4,7 @@ install.packages("tm")
 install.packages("tidyverse")
 install.packages("tidytext")
 install.packages("topicmodels")
-install.packages("LADvis")
+install.packages("LDAvis")
 install.packages("stopwords")
 install.packages("SnowballC")
 install.packages("gridExtra")
@@ -136,6 +136,55 @@ for (i in 1:length(names)) {
 
 
 do.call("grid.arrange", c(plist, ncol=3))
+
+#######################################
+#39 topics from MSHA data. 1da.39.rds output by R code on UA OnDemand and downloaded into local folder
+
+lda.39<- readRDS(file="lda.39.rds")
+#explore the model
+topics <- tidy(lda.39)
+
+# only select top-10 terms per topic based on token probability within a topic
+plotinput <- topics %>%
+  mutate(topic = as.factor(paste0('Topic',topic))) %>%
+  group_by(topic) %>%
+  top_n(10, beta) %>% 
+  ungroup() %>%
+  arrange(topic, -beta)
+
+# plot highest probability terms per topic
+names <- levels(unique(plotinput$topic))
+colors <- RColorBrewer::brewer.pal(n=length(names),name="Set2")
+
+plist <- list()
+
+for (i in 1:length(names)) {
+  d <- subset(plotinput,topic == names[i])[1:10,]
+  d$term <- factor(d$term, levels=d[order(d$beta),]$term)
+  
+  p1 <- ggplot(d, aes(x = term, y = beta, width=0.75)) + 
+    labs(y = NULL, x = NULL, fill = NULL) +
+    geom_bar(stat = "identity",fill=colors[i]) +
+    facet_wrap(~topic) +
+    coord_flip() +
+    guides(fill=FALSE) +
+    theme_bw() + theme(strip.background  = element_blank(),
+                       panel.grid.major = element_line(colour = "grey80"),
+                       panel.border = element_blank(),
+                       axis.ticks = element_line(size = 0),
+                       panel.grid.minor.y = element_blank(),
+                       panel.grid.major.y = element_blank() ) +
+    theme(legend.position="bottom") 
+  
+  plist[[names[i]]] = p1
+}
+
+
+do.call("grid.arrange", c(plist, ncol=3))
+
+
+
+
 
 #########################################################
 #finding best model https://cran.r-project.org/web/packages/topicmodels/vignettes/topicmodels.pdf
