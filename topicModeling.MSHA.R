@@ -1,14 +1,3 @@
-#topic modeling using MSHA and Hecla datasets
-
-install.packages("tm")
-install.packages("tidyverse")
-install.packages("tidytext")
-install.packages("topicmodels")
-install.packages("LDAvis")
-install.packages("stopwords")
-install.packages("SnowballC")
-install.packages("gridExtra")
-
 library(tidyverse)
 library(tidytext)
 library(topicmodels) #dyn.load("/usr/lib64/atlas/libsatlas.so.3")
@@ -20,22 +9,8 @@ library(SnowballC)
 
 setwd("C:/Users/hongcui/Documents/research/2021ALPHA with Brown/R")
 raw1 <- read.csv("MSHA.injuries.csv", encoding="latin1")
-raw2 <-read.csv("incidents.translated.csv", encoding="latin1")
 
-hecla<-read.csv("incidents.translated.preprocessed.csv", encoding="latin1")
-nrow(hecla)
-sum(hecla$Environmental.Incident)
-sum(hecla$Equipment)
-sum(hecla$Hazard.1)
-sum(hecla$Injury.Reporting)
-sum(hecla$Loss.of.Process)
-sum(hecla$Property.Damage)
-sum(hecla$Security)
-
-#########################################################
-#merge description and narrative to get the corpus and dtm for LDA
-descriptions <- data.frame(text = c(raw2$IncidentDescription))
-descriptions <- data.frame(text = c(raw1$NARRATIVE,raw2$IncidentDescription))
+descriptions <- data.frame(text = c(raw1$NARRATIVE))
 descriptions$id <-seq(1:nrow(descriptions))
 
 token.frequency <- descriptions %>% 
@@ -55,8 +30,8 @@ head(sort(table(token.frequency$token), decreasing=TRUE), 100)
 
 stopwords <- c(stopwords("en"), c("ee", "employee", "employees", "el", "due", "around"))
 
-sum(token.frequency$token_freq<5) #102455
-sum(token.frequency$token %in% stopwords) #2202923
+sum(token.frequency$token_freq<5) 
+sum(token.frequency$token %in% stopwords) 
 
 #remove stopwords and low freq words
 token.frequency <- token.frequency %>% 
@@ -66,7 +41,7 @@ token.frequency <- token.frequency %>%
   filter(stop==0) %>%
   select(-stop)
 
-nrow(token.frequency) #5986580
+nrow(token.frequency) 
 
 #stemming: not used to keep backing up and back separate
 #create Document Term Matrix
@@ -76,8 +51,8 @@ dtm <- token.frequency %>%
   cast_dtm(document = id,term = token,value = token_freq)
 
 #worse
-dtm <- token.frequency %>% 
-  cast_dtm(document = id,term = stem,value = stem_freq)
+#dtm <- token.frequency %>% 
+#  cast_dtm(document = id,term = stem,value = stem_freq)
 
 #filter on tf*idf: https://cran.r-project.org/web/packages/topicmodels/vignettes/topicmodels.pdf
 
@@ -85,19 +60,25 @@ dtm <- token.frequency %>%
 # 1st try
 #create topic model, https://cran.r-project.org/web/packages/topicmodels/vignettes/topicmodels.pdf
 # p.13
-lda.6 <- LDA(dtm, k = 4) #incident type
-#incident type: injury, equipment, property damage, environmental incident
+lda.39 <- LDA(dtm, k = 39) #39 nature_injury type in MSHA
+
+#######################################
+#39 topics from MSHA data using topicmodels. 1da.39.rds output by R code on UA OnDemand and downloaded into local folder
+#took some 30 hours to run on 4 cores.
+lda.39<- readRDS(file="lda.39.rds") #
 
 # phi (topic - token distribution matrix) -  topics in rows, tokens in columns:
-phi <- posterior(lda.6)$terms %>% as.matrix
-phi[,1:8] %>% as_tibble() %>% mutate_if(is.numeric, round, 5) %>% print()
+phi <- posterior(lda.39)$terms %>% as.matrix
+phi[,1:10] %>% as_tibble() %>% mutate_if(is.numeric, round, 5) %>% print() # show 10 tokens
 
 # theta (document - topic distribution matrix) -  documents in rows, topic probs in columns:
-theta <- posterior(lda.6)$topics %>% as.matrix
-theta[1:8,] %>% as_tibble() %>% mutate_if(is.numeric, round, 5) %>% setNames(paste0('Topic', names(.))) %>% print()
+theta <- posterior(lda.39)$topics %>% as.matrix
+View(theta)
+#how well does this matches the original?
+theta[1:10,] %>% as_tibble() %>% mutate_if(is.numeric, round, 5) %>% setNames(paste0('Topic', names(.))) %>% print()
 
 #explore the model
-topics <- tidy(lda.6)
+topics <- tidy(lda.39)
 
 # only select top-10 terms per topic based on token probability within a topic
 plotinput <- topics %>%
@@ -107,9 +88,10 @@ plotinput <- topics %>%
   ungroup() %>%
   arrange(topic, -beta)
 
+View(plotinput)
 # plot highest probability terms per topic
 names <- levels(unique(plotinput$topic))
-colors <- RColorBrewer::brewer.pal(n=length(names),name="Set2")
+#colors <- RColorBrewer::brewer.pal(n=length(names),name="Oranges")
 
 plist <- list()
 
@@ -119,7 +101,7 @@ for (i in 1:length(names)) {
   
   p1 <- ggplot(d, aes(x = term, y = beta, width=0.75)) + 
     labs(y = NULL, x = NULL, fill = NULL) +
-    geom_bar(stat = "identity",fill=colors[i]) +
+    geom_bar(stat = "identity",fill="orange") +
     facet_wrap(~topic) +
     coord_flip() +
     guides(fill=FALSE) +
@@ -134,26 +116,23 @@ for (i in 1:length(names)) {
   plist[[names[i]]] = p1
 }
 
+plist
 
-do.call("grid.arrange", c(plist, ncol=3))
+library(gridExtra)
+ml <- marrangeGrob(plist, nrow=2, ncol=4)
+ggsave("39topics.pdf", ml)
+dev.off()
+
+#do.call("grid.arrange", c(plist, ncol=3))
 
 
+#https://cran.r-project.org/web/packages/stm/vignettes/stmVignette.pdf
+sort(table(raw1$NATURE_INJURY))
 
+for(i in unique(raw1$NATURE_INJURY)){
+  print(paste("type =", i))
+  print(head(raw1[raw1$NATURE_INJURY==i, ]$NARRATIVE))
+}
 
-
-
-
-#########################################################
-#finding best model https://cran.r-project.org/web/packages/topicmodels/vignettes/topicmodels.pdf
-#TODO
-k <- 6 #
-SEED <- 2010
-jss_TM <-
-  list(VEM = LDA(dtm, k = k, control = list(seed = SEED)),
-       VEM_fixed = LDA(dtm, k = k, control = list(estimate.alpha = FALSE, seed = SEED)),
-       Gibbs = LDA(dtm, k = k, method = "Gibbs",
-                       control = list(seed = SEED, burnin = 1000,
-                                        thin = 100, iter = 1000)),
-       CTM = CTM(dtm, k = k,
-                       control = list(seed = SEED,
-                                      var = list(tol = 10^-4), em = list(tol = 10^-3))))
+#topic models of 39 topics reflect more on body parts that are injuried. Not align with Nature_Injuries that well.
+#need to improve stopword list
