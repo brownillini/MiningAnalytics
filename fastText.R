@@ -6,13 +6,16 @@ install.packages("fastText")
 library(fastText)
 library(dplyr)
 
+#use MSHA inj_body_part data to train a model using fastText
+#use the model to predict which body part injury an interaction/audit could be a leading factor
+
 #https://towardsdatascience.com/fasttext-bag-of-tricks-for-efficient-text-classification-513ba9e302e7
 #https://fasttext.cc/docs/en/supervised-tutorial.html
 #using an example data set: data
 setwd("C:/Users/hongcui/Documents/research/2021ALPHA with Brown/R")
 raw1 <- read.csv("MSHA.injuries.csv", encoding="latin1")
 
- 
+#merge labels 
 data <- raw1 %>% select(NARRATIVE, INJ_BODY_PART) %>% 
   mutate(INJ_BODY_PART = case_when (
     INJ_BODY_PART == "EYE(S) OPTIC NERVE/VISON" ~ "EYE",
@@ -67,17 +70,13 @@ data <- raw1 %>% select(NARRATIVE, INJ_BODY_PART) %>%
   )
   )
 
-#concatenate label and text
+#create training example for fastText: concatenate label and text
 text <- data %>% mutate(text = paste(paste("__label__", INJ_BODY_PART, sep=""), NARRATIVE))
 file <- file("fasttext.train.txt")
 writeLines(text$text, file)
 close(file)
 
-
-#read carefully:
-#https://stackoverflow.com/questions/47692906/fasttext-using-pre-trained-word-vector-for-text-classification
-#https://fasttext.cc/docs/en/options.html
-
+#use all MSHA data as training data
 #use both training and pretrainedVectors [picked on from https://fasttext.cc/docs/en/english-vectors.html]
 list_params = list(command = 'supervised',
                    lr = 0.1,
@@ -95,7 +94,7 @@ res = fasttext_interface(list_params,
 #once the model is learned, you will find "fasttext.model.bin" in your getwd() folder
 #then use the model to predict
 
-
+#use interaction/audit data as test
 interaction <- read.csv("SafetyInteractions.csv", encoding="latin1")
 
 interaction <- interaction %>% 
@@ -106,13 +105,11 @@ interaction <- interaction %>%
                   )
                 )%>%filter(selected==1)
                 
-                  
-                
-
 file <- file("fasttext.test.txt")
 writeLines(interaction[,4], file)
 close(file)
 
+#predict
 list_params = list(command = 'predict-prob',
                    model = file.path(getwd(), 'fasttext.model.bin'),
                    test_data = file.path(getwd(), 'fasttext.test.txt'),
@@ -121,7 +118,7 @@ list_params = list(command = 'predict-prob',
 res = fasttext_interface(list_params,
                          path_output = file.path(getwd(), 'fasttext.predict_valid.txt'))
 
-#combine prediction with interaction/audit data
+#combine prediction with interaction/audit data in one csv file
 file<-file("fasttext.predict_valid.txt")
 preds<-readLines(file)
 result <-cbind(interaction$field4, preds)
