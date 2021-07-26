@@ -1,0 +1,52 @@
+STM 7-topic topic model, with prevalence injured body parts: 
+"EYE", "HAND", "ANKLE","KNEE", "SHOULDER", "BACK", "OTHER"
+
+data <- raw1 %>% select(NARRATIVE, INJ_BODY_PART) %>% 
+  mutate(INJ_BODY_PART = case_when (
+    INJ_BODY_PART == "EYE(S) OPTIC NERVE/VISON" ~ "EYE",
+    INJ_BODY_PART == "HAND (NOT WRIST OR FINGERS)" ~ "HAND",
+    INJ_BODY_PART == "ANKLE" ~  "ANKLE",
+    INJ_BODY_PART == "KNEE/PATELLA" ~ "KNEE",
+    INJ_BODY_PART == "SHOULDERS (COLLARBONE/CLAVICLE/SCAPULA)" ~ "SHOULDER",
+    INJ_BODY_PART == "BACK (MUSCLES/SPINE/S-CORD/TAILBONE)" ~ "BACK",
+    TRUE ~ "OTHER"
+  )
+)
+
+###############################################
+
+Topic 1 Top Words:
+ 	 Highest Prob: use, piec, injur, result, bar, came, wrench, side, fractur, crusher, strike, two, plate, end, open, motor, box, jack, pri, chute 
+ 	 FREX: bar, motor, jack, pri, hook, impact, wedg, jaw, let, lip, bracket, rig, conduit, auger, electr, tube, rubber, stapl, plate, socket 
+ 	 Lift: afractur, airplan, alum, beater, befor, blowbar, breather, coeur, commit, constructor, crosshead, dental, destruct, disassembl, dislog, emiss, fairlead, fifteen, galloway, gum 
+ 	 Score: use, bar, wrench, piec, plate, fractur, pri, strike, motor, jack, crusher, shaft, chute, came, tip, forearm, box, open, impact, hook 
+Topic 2 Top Words:
+ 	 Highest Prob: knee, step, right, slip, twist, fell, walk, ankl, foot, ground, leg, ladder, climb, onto, floor, sprain, land, trip, lost, roll 
+ 	 FREX: knee, step, twist, ankl, ground, ladder, climb, sprain, trip, balanc, exit, backward, ice, stair, dismount, platform, park, uneven, descend, walkway 
+ 	 Lift: -point, aircast, andh, ankleheel, anti-skid, anti-slip, ascent, backand, balan, bine, boy, bridal, buckl, bulkload, callout, cartileg, cation, chut, cling, comminut 
+ 	 Score: knee, step, ankl, twist, foot, walk, ladder, slip, ground, sprain, climb, fell, stair, trip, leg, land, uneven, ice, right, dismount 
+Topic 3 Top Words:
+ 	 Highest Prob: hand, cut, right, finger, belt, remov, hit, lacer, slip, steel, conveyor, caught, hammer, stitch, pipe, door, arm, broke, top, screen 
+ 	 FREX: hand, cut, finger, hammer, stitch, knife, pin, pinch, roller, thumb, sutur, elev, frame, index, glove, palm, rope, util, smash, bear 
+ 	 Lift: -stitch, aganst, andit, asist, auxillari, avocado, bagbi, bicept, boggi, bold, bon, bound, brad, break-, breakov, btween, bungi, carburetor, caugh, channellock 
+ 	 Score: hand, finger, cut, lacer, knife, stitch, hammer, thumb, sutur, pinch, index, palm, glove, slip, remov, steel, pin, conveyor, caught, smash 
+Topic 4 Top Words:
+ 	 Highest Prob: eye, got, dust, safeti, glass, remov, hose, weld, right, metal, piec, burn, wear, air, went, face, materi, clean, blew, wash 
+ 	 FREX: eye, dust, safeti, glass, weld, burn, wear, blew, valv, enter, grind, fire, foreign, irrit, wind, flew, kiln, cement, debri, object 
+ 	 Lift: airborn, ash, blown, burner, burnt, chamber, cleaner, embed, helmet, leak, liquor, ointment, port, shirt, vision, weld, dust, eye, safeti, abrad 
+ 	 Score: eye, glass, foreign, dust, blew, safeti, weld, irrit, grind, particl, flush, burn, wind, metal, prescript, wear, lime, slag, flash, antibiot 
+Topic 5 Top Words:
+ 	 Highest Prob: shoulder, pain, time, medic, injuri, day, duti, restrict, shift, work, report, went, continu, surgeri, return, treatment, miss, taken, due, diagnos 
+ 	 FREX: shoulder, duti, restrict, report, surgeri, treatment, diagnos, incid, attent, mri, follow, schedul, evalu, therapi, claim, physic, sore, sought, seek, compani 
+ 	 Lift: ---, --counter, --he, --job, -bc-, -call, -ee, -juri, -pm, -step, absenc, absent, accident-, accidentinjuri, accommod, admiss, advis, afford, age, aggrev 
+ 	 Score: shoulder, pain, medic, surgeri, duti, day, report, restrict, mri, treatment, diagnos, injuri, time, continu, therapi, incid, attent, schedul, taken, physic 
+Topic 6 Top Words:
+ 	 Highest Prob: fall, bolt, roof, miner, rock, struck, fell, drill, head, area, entri, occur, section, cabl, rib, block, strike, bolter, long, piec 
+ 	 FREX: fall, bolt, roof, entri, section, rib, bolter, long, high, wide, support, measur, main, factor, mine, thick, involv, spad, panel, crib 
+ 	 Lift: -ft, -high, -main, -man, -person, -south, -xc, abandon, abrais, abut, additio, alloy, appx, apx, atth, b-butt, beed, bein, beltway, bks 
+ 	 Score: roof, fall, bolt, entri, wide, spad, long, rock, rib, thick, bolter, occur, miner, measur, unintent, struck, drill, factor, crosscut, intersect 
+Topic 7 Top Words:
+ 	 Highest Prob: lower, pain, truck, pull, strain, lift, oper, move, loader, load, bucket, car, shovel, pick, cabl, hit, haul, sharp, scoop, muscl 
+ 	 FREX: lower, strain, lift, load, shovel, pick, haul, muscl, bent, pallet, tire, road, driver, seat, low, jar, bed, ran, lbs, lumbar 
+ 	 Lift: -gallon, -road, abdomengroin, accessori, apain, ard, artic, articul, asper, awkard, backe, backemploye, backleft, backresult, backstrain, backtailbon, backth, baja, bed, blazer 
+ 	 Score: lower, pain, strain, truck, lift, pull, muscl, haul, shovel, loader, pick, load, sharp, jar, bag, bucket, road, hurt, car, seat 

@@ -1,0 +1,64 @@
+STM 9-topic topic model, with prevalence injured body parts: 
+"EYE", "HAND", "ANKLE","FINGER", "WRIST", "KNEE", "SHOULDER", "BACK", "OTHER"
+
+data <- raw1 %>% select(NARRATIVE, INJ_BODY_PART) %>% 
+  mutate(INJ_BODY_PART = case_when (
+    INJ_BODY_PART == "EYE(S) OPTIC NERVE/VISON" ~ "EYE",
+    INJ_BODY_PART == "HAND (NOT WRIST OR FINGERS)" ~ "HAND",
+    INJ_BODY_PART == "FINGER(S)/THUMB" ~ "FINGER",
+    INJ_BODY_PART == "WRIST" ~ "WRIST",
+    INJ_BODY_PART == "ANKLE" ~  "ANKLE",
+    INJ_BODY_PART == "KNEE/PATELLA" ~ "KNEE",
+    INJ_BODY_PART == "SHOULDERS (COLLARBONE/CLAVICLE/SCAPULA)" ~ "SHOULDER",
+    INJ_BODY_PART == "BACK (MUSCLES/SPINE/S-CORD/TAILBONE)" ~ "BACK",
+    TRUE ~ "OTHER"
+  )
+)
+
+#################################################
+
+Topic 1 Top Words: 
+ 	 Highest Prob: eye, hose, metal, got, dust, safeti, weld, glass, remov, air, burn, piec, materi, water, face, wear, went, clean, valv, blew 
+ 	 FREX: eye, dust, safeti, weld, glass, burn, blew, wash, fire, grind, wind, kiln, foreign, irrit, flew, torch, spray, object, debri, lime 
+ 	 Lift: acid, degre, hydrat, abrad, abraison, acet, actin, acular, afr, airbourn, airlanc, airless, airplan, airstream, alkali, alkalin, allerg, alumin, anesthet, anitbiot 
+ 	 Score: eye, glass, dust, foreign, blew, safeti, irrit, weld, burn, hose, grind, particl, metal, flush, prescript, wind, fire, lime, slag, antibiot 
+Topic 2 Top Words: 
+ 	 Highest Prob: knee, step, slip, truck, twist, walk, foot, ankl, ground, loader, ladder, floor, onto, climb, land, roll, trip, sprain, haul, get 
+ 	 FREX: step, twist, walk, ankl, ground, ladder, climb, sprain, haul, exit, cab, ice, stair, jar, dismount, park, vehicl, uneven, descend, snow 
+ 	 Lift: raini, unlevel, bus, haul, ici, overturn, snow, stairway, terrain, step, twist, -road, -turn, acess, achill, afractur, aircast, alga, alpm, andstep 
+ 	 Score: step, knee, ankl, twist, truck, walk, foot, ladder, ground, slip, sprain, climb, haul, land, loader, stair, dismount, trip, ice, uneven 
+Topic 3 Top Words: 
+ 	 Highest Prob: piec, miner, cabl, put, one, line, rail, chain, help, two, work, motor, bucket, process, replac, mechan, repair, cover, hoist, set 
+ 	 FREX: motor, cover, hoist, elev, wire, power, electr, rope, tube, switch, slack, stick, electrician, conduit, technician, pole, starter, reset, evacu, fuse 
+ 	 Lift: -cm, -minut, abb, alega, allegheni, alpin, announc, armatur, auxillari, baja, banker, belth, binder, blake, braze, britbi, bullhos, buss, cager, cam 
+ 	 Score: miner, piec, hoist, chain, motor, cabl, elev, rail, line, wire, put, shaft, help, replac, rope, power, electr, fan, bucket, switch 
+Topic 4 Top Words: 
+ 	 Highest Prob: hand, finger, cut, lacer, caught, stitch, slip, thumb, pinch, index, middl, fractur, sutur, knife, ring, door, close, result, tip, smash 
+ 	 FREX: finger, stitch, thumb, pinch, index, sutur, knife, smash, pinki, wound, mash, palm, knuckl, amput, razor, stich, digit, fingernail, slice, fingertip 
+ 	 Lift: countertop, meta, phalang, amput, forefing, index, metacarp, tuft, finger, thumb, -sutur, -thread, aload, alternat, among, andcut, angle-iron, ator, autocran, avocado 
+ 	 Score: finger, thumb, index, hand, knife, stitch, lacer, pinch, smash, ring, cut, sutur, pinki, glove, middl, slip, mash, fractur, palm, caught 
+Topic 5 Top Words:
+ 	 Highest Prob: belt, use, bolt, remov, drill, steel, hammer, bar, conveyor, instal, wrench, screen, pin, hole, broke, chang, plate, roller, crusher, hold 
+ 	 FREX: drill, steel, hammer, bar, conveyor, wrench, screen, roller, jack, pri, feeder, structur, tighten, impact, bit, beam, bear, sledg, nut, loosen 
+ 	 Lift: -beam, agai, attmept, augar, axe, backstop, backsw, banana, bar, beltmen, bf-, bow, box-end, brad, bundl, channelock, cheater, chiesel, chutework, claw 
+ 	 Score: hammer, drill, bolt, bar, steel, belt, wrench, roller, remov, conveyor, use, plate, pri, pin, screen, jack, sledg, hold, nut, broke 
+Topic 6 Top Words: 
+ 	 Highest Prob: fell, rock, hit, side, oper, struck, injur, top, leg, strike, head, car, arm, rib, came, scoop, machin, stand, track, turn 
+ 	 FREX: car, scoop, tire, shuttl, mantrip, canopi, draw, ride, tram, curtain, toe, rib, bruis, stand, bridg, batteri, highwal, chin, tree, rock 
+ 	 Lift: -wheeler, bunge, bungi, concuss, dinki, ducon, fibia, forarm, ise, johnson, lowb, mac, metars, offsid, scsr, slung, triangular, wheeler, fender, mantrip 
+ 	 Score: fell, rock, hit, leg, rib, car, strike, scoop, struck, side, head, top, arm, tire, stand, mantrip, canopi, track, shuttl, oper 
+Topic 7 Top Words:
+ 	 Highest Prob: fall, roof, area, bolt, entri, occur, section, bolter, equip, long, high, support, injuri, wide, factor, main, measur, feet, face, mine 
+ 	 FREX: fall, roof, entri, occur, section, bolter, long, high, wide, factor, main, measur, mine, panel, thick, involv, spad, timber, train, crosscut 
+ 	 Lift: -bay, -high, -long, -north, -north-, -unit, -wayintersect, abandon, additio, aep, affect, aircours, airdox, airment, anchorag, anger, app, approxima, armelbow, aro 
+ 	 Score: roof, fall, entri, wide, occur, spad, bolt, factor, long, unintent, measur, thick, bolter, intersect, crosscut, high, danger, complianc, main, area 
+Topic 8 Top Words:
+ 	 Highest Prob: time, medic, injuri, duti, day, restrict, went, pain, report, shift, wrist, continu, surgeri, return, work, treatment, taken, diagnos, due, miss 
+ 	 FREX: duti, restrict, report, surgeri, diagnos, attent, tunnel, experienc, alleg, schedul, evalu, mri, claim, carpal, therapi, compani, sore, sought, physic, seek 
+ 	 Lift: --job, -relat, -week, absent, afford, alcoa, anti-inflamatori, anti-inflamitori, arthriti, arthropathi, birth, bwc, calendar, capac, cartilag, causal, character, chargeabl, chiroprat, complic 
+ 	 Score: medic, duti, pain, day, surgeri, restrict, report, carpal, treatment, mri, diagnos, syndrom, tunnel, wrist, time, therapi, occup, schedul, physic, experienc 
+Topic 9 Top Words:
+ 	 Highest Prob: pain, shoulder, pull, lower, lift, strain, move, injur, shovel, pop, pick, load, bag, sharp, muscl, place, pipe, pallet, hurt, bucket 
+ 	 FREX: shoulder, lower, lift, pick, muscl, lbs, gallon, weigh, pallet, strain, boulder, wheelbarrow, waist, scraper, difficult, barrow, pail, pull, bent, stretch 
+ 	 Lift: apain, crucibl, dimension, headroom, intoth, liftingmov, lugger, middlelow, midlow, mil, painstrain, push-pul, re-mount, stain, strainedpul, struggl, tremend, waslift, lift, pick 
+ 	 Score: shoulder, pain, strain, lower, pull, lift, muscl, bag, pop, pallet, hurt, pick, sharp, shovel, move, bent, lumbar, bucket, someth, lbs 
