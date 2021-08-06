@@ -138,14 +138,30 @@ file <- file("fasttext.inter.test.txt")
 writeLines(text$text, file)
 close(file)
 
-#test, RUN THIS ON UA HPC
+#RUN the following on UA HPC
 list_params <- list(command = 'predict',
                    model = file.path(getwd(), 'fasttext.inter.model.bin'), # don't know why this model does not predict anything
                    test_data = file.path(getwd(), 'fasttext.inter.test.txt'),
                    k = 4, #adjustable, output topic three best predictions
-                   th = 0.01) #adjustable, threshold for the probability, predictions with a probability >= th will be output
+                   th = 0) #adjustable, threshold for the probability, predictions with a probability >= th will be output
 res <- fasttext_interface(list_params,
                          path_output = file.path(getwd(), 'fasttext.inter.predict_valid.txt'))
+
+#combine prediction with interaction/audit data in one csv file
+file<-file("fasttext.inter.predict_valid.txt")
+preds<-readLines(file)
+result <-cbind(text, preds)
+write.csv(result, file="fasttext.inter.predicts.csv")
+close(file)
+
+
+list_params <- list(command = 'test',
+                    model = file.path(getwd(), 'fasttext.inter.model.bin'), # don't know why this model does not predict anything
+                    test_data = file.path(getwd(), 'fasttext.inter.test.txt'),
+                    k = 4, #adjustable, output topic three best predictions
+                    th = 0.01) #adjustable, threshold for the probability, predictions with a probability >= th will be output
+res <- fasttext_interface(list_params,
+                          path_output = file.path(getwd(), 'fasttext.inter.test_valid.txt'))
 
 #Follow Precision and Recall scores were obtained on UA HPC
 
@@ -181,12 +197,7 @@ res <- fasttext_interface(list_params,
 
 
 
-#combine prediction with interaction/audit data in one csv file
-#file<-file("fasttext.inter.predict_valid.txt")
-#preds<-readLines(file)
-#result <-cbind(text, preds)
-#write.csv(result, file="fasttext.inter.predicts.csv")
-#close(file)
+
 
 
 
