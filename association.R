@@ -30,8 +30,11 @@ trans <- as(data, "transactions")
 
 #adjust support and/or confidence to find useful rules
 rules <- apriori(trans, parameter = list(support=0.1, confidence=0.6, target="rules", minlen=2))
-#rules.max <- subset(rules, subset=is.maximal(rules))
+#rules.max <- subset(rules, subset=is.maximal(rules)) #this returns longest rules that meet support/confident requirements
 
+#this addes additional rule quality measures, high kulc (close to 1) means when A=>B, then also B=>A.
+#high imbalance score (close to 1) means the support for A and the support for B differ a lot.
+#you want high confidence, high support rules, it's even better if kulc is also high and imblance is low.
 quality(rules) <- cbind(quality(rules),
                             kulc = interestMeasure(rules, measure = "kulczynski",
                                                    transactions = trans),
@@ -39,13 +42,13 @@ quality(rules) <- cbind(quality(rules),
                                                         transactions = trans))
 #summary(rules)
 
-inspect(head(rules, by="kulc"))
+inspect(head(rules, by="conf", n=10)) #show top 10 rules
 
 (rules.risk <- subset(rules, subset=rhs %pin% c("RiskRating")))
-inspect(head(rules.risk, by="kulc"))
+inspect(head(rules.risk, by="conf"))
 
 (rules.injury <- subset(rules, subset=rhs %pin% c("Injury")))
-inspect(head(rules.injury, by="kulc"))
+inspect(head(rules.injury, by="conf"))
 
 (rules.eqp <- subset(rules, subset=rhs %pin% c("Equipment")))
 (rules.hazard <- subset(rules, subset=rhs %pin% c("Hazard.1")))
@@ -58,3 +61,5 @@ cramerV(data$NearMiss, data$Injury.Reporting)
 
 data$NearMiss<-ifelse(data$NearMiss=="Yes",1,0)
 cor(data$NearMiss, data$Injury.Reporting, use="pairwise.complete.obs")
+
+

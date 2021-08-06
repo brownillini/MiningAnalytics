@@ -45,6 +45,9 @@ chisq.test(tab) #sig. contractor death >2 times of non contractor dead
 prop.table(tab, margin=1)
 
 #...
+####ToDo:
+#cross compare degree of injury 1 and 2 with subunit for contractors
+#focused analysis on injuried body parts. 
 
 
 ###########################################

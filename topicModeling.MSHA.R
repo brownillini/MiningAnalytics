@@ -7,6 +7,8 @@ library(stopwords)
 library(gridExtra)
 library(SnowballC)
 
+
+
 setwd("C:/Users/hongcui/Documents/research/2021ALPHA with Brown/R")
 raw1 <- read.csv("MSHA.injuries.csv", encoding="latin1")
 
