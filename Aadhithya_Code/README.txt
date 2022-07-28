@@ -10,5 +10,5 @@ Here are the steps to reproduce the results for our preliminary analysis.
 7. Copy the output labels and paste it in the relevant [model]k4.csv file under the preds column. You can find these files here https://arizona.app.box.com/folder/166542314955. 
 8. Run the UltimatePrecisionAndRecallCalculation.py file for calculating the Precision, Recall and F1-scores for K=4.
 9. Repeat steps from 5 to 9 with different values and parameters for trial and error. 
-
+10. usefulness correlation.py can be used to get the scores for association rules
 P.S svmAndRFMultiLabel.py is future use. 
