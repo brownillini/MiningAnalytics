@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
+import average_precision
 
 import re # for regex
 
@@ -24,10 +25,12 @@ from tqdm import tqdm
 ##### CHANGE THESE VARIABLES TO GET THE RESULTS FOR TWO SEPARATE GROUND TRUTHS. PLEASE UNCOMMENT THE GROUND TRUTH YOU WANT TO CHECK OUT.
 
 # GROUND_TRUTH = 'Label (L Brown)'
-GROUND_TRUTH = 'Label (R Reed)'
+# GROUND_TRUTH = 'Label (R Reed)'
+GROUND_TRUTH_LIST = ['Label (Glenna)', 'Label (R Reed)', 'Label (L Brown)']
 # GROUND_TRUTH = 'MSHA' # this is set when training the model
 
-flag = "test" # change the value to train if you wish to train bert
+flag = "test" 
+# change the value to train if you wish to train bert
 # flag = "train"
 
 #### END OF VARIABLES
@@ -115,7 +118,7 @@ def utils_preprocess_text(text, flg_stemm=False, flg_lemm=False, lst_stopwords=N
     ## clean (convert to lowercase and remove punctuations and   
     ##characters and then strip)
     text = re.sub(r'[^\w\s]', '', str(text).lower().strip())
-            
+    text = str(text).lower()
     ## Tokenize (convert from string to list)
     lst_text = text.split()    
     # remove Stopwords
@@ -134,7 +137,7 @@ def utils_preprocess_text(text, flg_stemm=False, flg_lemm=False, lst_stopwords=N
         lst_text = [lem.lemmatize(word) for word in lst_text]
             
     # back to string from list
-    text = " ".join(lst_text)
+    # text = " ".join(lst_text)
     return text
 
 def train(model, train_data, val_data, learning_rate, epochs):
@@ -202,6 +205,8 @@ def train(model, train_data, val_data, learning_rate, epochs):
                 | Val Loss: {total_loss_val / len(val_data): .3f} \
                 | Val Accuracy: {total_acc_val / len(val_data): .3f}')
 
+res = []
+final_data = pd.read_csv('bertK4.csv')
 def evaluate(model, test_data):
     test = Dataset(test_data)
 
@@ -217,12 +222,7 @@ def evaluate(model, test_data):
     total_acc_test = 0
     with torch.no_grad():
         print("|||Printing the predicted labels into a new file. Please wait for about 5 minutes.|||")
-        if GROUND_TRUTH == 'Label (L Brown)':
-            file_name = 'bert_output_brown.txt'
-        elif GROUND_TRUTH == 'Label (R Reed)':
-            file_name = 'bert_output_reed.txt'
-        else:
-            file_name = 'bert_output.txt'
+        file_name = 'bert_output.txt'
 
         with open(file_name, 'w') as f:
             for test_input, test_label in test_dataloader:
@@ -232,32 +232,41 @@ def evaluate(model, test_data):
                 output = model(input_id, mask)
                 m = torch.nn.Softmax(dim=1) # converting to probabilities
                 tf_predictions = m(output)
-                tf_predictions = tf_predictions.numpy()
+                tf_predictions = tf_predictions.cpu().numpy()
                 top4 = np.argpartition(tf_predictions.ravel(), -4)[:4] # getting the top 4 labels predicted by the model
+                s = ''
                 for label in top4:
                     f.write(reverse_labels.get(int(label)))
                     f.write(".")
+                    s = s + reverse_labels.get(int(label)) + '.'
                     print(reverse_labels.get(int(label)), end=".")
+                res.append(s)
                 f.write("\n")
                 acc = (output.argmax(dim=1) == test_label).sum().item()
                 y_pred.append(reverse_labels.get(int(output.argmax(dim=1))))
                 total_acc_test += acc
     f.close()
+    final_data['preds'] = res
+    final_data.to_csv('predictionsBERT.csv')
     print(f'Test Accuracy: {total_acc_test / len(test_data): .3f}')
 
-    print(len(y_test), len(y_pred))
-    report = classification_report(y_test, y_pred, output_dict = True)
-    df = pd.DataFrame(report).transpose()
-    print(df)
-
-    if GROUND_TRUTH == 'Label (L Brown)':
-        df.to_csv('bertbk1.csv')
-    elif GROUND_TRUTH == 'Label (R Reed)':
-        df.to_csv('bertrk1.csv') 
-    else:
+    if flag == "train":
+        print(len(y_test), len(y_pred))
+        report = classification_report(y_test, y_pred, output_dict = True)
+        df = pd.DataFrame(report).transpose()
+        print(df)
         df.to_csv('bertk1.csv') 
+        print(confusion_matrix(y_test, y_pred))
+    else:
+        for GROUND_TRUTH in GROUND_TRUTH_LIST:
+            print(len(y_test_labels[GROUND_TRUTH]), len(y_pred))
+            report = classification_report(y_test_labels[GROUND_TRUTH], y_pred, output_dict = True)
+            df = pd.DataFrame(report).transpose()
+            print(df)
+            df.to_csv('bertk1' + GROUND_TRUTH +  '.csv') 
 
-    print(confusion_matrix(y_test, y_pred))
+
+
 
 ### END OF FUNCTIONS ###
 
@@ -276,16 +285,14 @@ if flag == "test":
     data = data.rename(columns={'DESC':'text'})
     data['text_clean'] = data['text'].apply(lambda x: 
           utils_preprocess_text(x))
-
-    data['category'] = data[GROUND_TRUTH].apply(lambda x: x.split('.')[0])
-
-    for index, row in data.iterrows():
-        y_test.append(str(row['category']))
+    y_test_labels = {'Label (Glenna)':[], 'Label (R Reed)':[], 'Label (L Brown)':[]}
     df_test = data
 else:
     np.random.seed(112)
     data = pd.read_csv("""MSHA.injuries.csv""", encoding= 'unicode_escape')
-    data.drop(data.index[500:], 0, inplace=True)
+    # print(data[16526])
+    data.drop(data.index[5000:], 0, inplace=True)
+    data.dropna(subset=["INJ_BODY_PART","NARRATIVE"], inplace=True)
     for index, row in data.iterrows():
         if row["INJ_BODY_PART"] == "FINGER(S)/THUMB":
             row["INJ_BODY_PART"] = "HAND"
@@ -389,12 +396,13 @@ else:
         if row["INJ_BODY_PART"] == """EXCLUDE""":
             data.drop(index, inplace=True)
 
-    data['category'] = data["INJ_BODY_PART"].apply(lambda x: x.split('.')[0])
+    data['category'] = data["INJ_BODY_PART"].apply(lambda x: str(x).split('.')[0])
 
 
     data = data.rename(columns={'NARRATIVE':'text'})
     data['text_clean'] = data['text'].apply(lambda x: 
           utils_preprocess_text(x))
+    data.to_csv('preprocessed_MSHA_dataset.csv')
     df_train, df_val, df_test = np.split(data.sample(frac=1, random_state=42), 
                                             [int(.8*len(data)), int(.9*len(data))])
     for index, row in df_test.iterrows():
@@ -409,14 +417,79 @@ else:
 EPOCHS = 5
 model = BertClassifier()
 LR = 1e-6
-model.load_state_dict(torch.load('bert_model_2', map_location=torch.device('cpu')))  
 
 
-# train(model, df_train, df_val, LR, EPOCHS) # uncomment the line below if you wish to train the model
-torch.save(model.state_dict(), 'bert_model')
+if flag == "train":
+    train(model, df_train, df_val, LR, EPOCHS)
+    torch.save(model.state_dict(), 'bert_model_new')
+model.load_state_dict(torch.load('bert_model_1', map_location=torch.device('cpu')))  
 
 
 # PLease wait for the entire labels
+
+data = pd.read_csv('interaction.labeled.csv', encoding = 'unicode_escape')
+data = data.rename(columns={'DESC':'text'})
+data['text_clean'] = data['text'].apply(lambda x: 
+        utils_preprocess_text(x))
+for GROUND_TRUTH in GROUND_TRUTH_LIST:
+    data['category'] = data[GROUND_TRUTH].apply(lambda x: str(x).split('.')[0])
+    for index, row in data.iterrows():
+        y_test_labels[GROUND_TRUTH].append(str(row['category']))
+y_pred = []
+
+df_test = data
 evaluate(model, df_test)
 
+
+def oneHotEncoding(Y_TRUE, Y_PRED, model, groundTruthIndex, comparisonIndex):
+        df = pd.read_csv(model, encoding = 'unicode_escape')
+        for index, row in df.iterrows():
+            y_true = []
+            y_scores = []
+            classes = ['ankle', 'back', 'eye', 'hand', 'knee', 'other', 'shoulder']
+            for bodyPart in classes:
+                if str(row[groundTruthIndex]).lower().find(bodyPart) != -1:
+                    y_true.append(1)
+                if str(row[comparisonIndex]).lower().find(bodyPart) != -1:
+                    y_scores.append(1)
+                if str(row[groundTruthIndex]).lower().find(bodyPart) == -1:
+                    y_true.append(0)
+                if str(row[comparisonIndex]).lower().find(bodyPart) == -1:
+                    y_scores.append(0)
+            Y_TRUE.append(y_true)
+            Y_PRED.append(y_scores)
+
+Y_TRUE = []
+Y_PRED = []
+# For K = 4 
+classes = ['ANKLE', 'BACK', 'EYE', 'HAND', 'KNEE', 'OTHER', 'SHOULDER']
+oneHotEncoding(Y_TRUE, Y_PRED, 'predictionsBERT.csv', 'reedLabels', 'preds') # SVM
+print("BERT - Reed ground truth")
+report = classification_report(Y_TRUE, Y_PRED, output_dict = True, target_names=classes)
+df = pd.DataFrame(report).transpose()
+df.to_csv('bert_result_K4_reed.csv')
+print(df)
+print(average_precision.mapk(Y_TRUE, Y_PRED, k =4))
+
+Y_TRUE = []
+Y_PRED = []
+
+oneHotEncoding(Y_TRUE, Y_PRED, 'predictionsBERT.csv', 'brownLabels', 'preds') # SVM
+print("BERT - Brown ground truth")
+report = classification_report(Y_TRUE, Y_PRED, output_dict = True, target_names=classes)
+df = pd.DataFrame(report).transpose()
+df.to_csv('bert_result_K4_brown.csv')
+print(df)
+print(average_precision.mapk(Y_TRUE, Y_PRED, k =4))
+
+Y_TRUE = []
+Y_PRED = []
+
+oneHotEncoding(Y_TRUE, Y_PRED, 'predictionsBERT.csv', 'glennaLabels', 'preds') # SVM
+print("BERT - Glenna ground truth")
+report = classification_report(Y_TRUE, Y_PRED, output_dict = True, target_names=classes)
+df = pd.DataFrame(report).transpose()
+df.to_csv('bert_result_K4_glenna.csv')
+print(df)
+print(average_precision.mapk(Y_TRUE, Y_PRED, k =4))
 
