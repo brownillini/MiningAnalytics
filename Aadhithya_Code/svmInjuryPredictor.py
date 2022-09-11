@@ -277,10 +277,6 @@ if flag == "train":
     df.to_csv('svmk1.csv') 
     print(confusion_matrix(y_test, y_pred))
 
-
-
-
-
 if flag == "test":
     for GROUND_TRUTH in GROUND_TRUTH_LIST:
         data['category'] = data[GROUND_TRUTH].apply(lambda x: str(x).split('.')[0])
